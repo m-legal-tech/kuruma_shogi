@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Build files
+dist/
+build/
+
+# Deployment files
+*.tar.gz
+deploy-list.txt
+
+# Old versions
+*_trans_v2.png
+*_white.png
+*-unified.png
+ambulance.png
+bulldozer.png
+fire-truck.png
+police-car.png
+school-bus.png
+*_trans.png
+fire-truck-ladder.png
+fire-truck-ladder-trans.png
+fire-truck-unified.png
+fire-truck-unified-trans.png
+ambulance-unified.png
+bulldozer-unified.png
+school-bus-unified.png
+police-car-new.png

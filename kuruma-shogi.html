@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>くるま将棋 - 子ども向け将棋ゲーム</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/public/manifest.json">
+    
+    <!-- iOS用アイコン -->
+    <link rel="apple-touch-icon" href="/public/apple-touch-icon.png">
+    
+    <!-- その他のアイコン -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/public/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/public/icon-512.png">
+    
+    <!-- テーマカラー -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="くるま将棋">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+        }
+
+        .turn-indicator {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 0 auto 15px auto;
+            display: block;
+        }
+
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 4px;
+            background: #d4a574;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 0 auto;
+            max-width: min(95vw, 700px);
+            width: 95vw;
+            aspect-ratio: 1 / 1;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .cell {
+            background: #f4e4c1;
+            border: 2px solid #d4a574;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .cell:hover {
+            background: #ffe4b5;
+        }
+
+        .cell.selected {
+            background: #ffeb3b;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.9);
+            border-color: #fbc02d;
+            border-width: 4px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(255, 235, 59, 0.9);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255, 193, 7, 1);
+            }
+        }
+
+        .cell.movable {
+            background: #81c784;
+            cursor: pointer;
+            animation: breathe 1.5s ease-in-out infinite;
+            border-color: #4caf50;
+            border-width: 3px;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                background: #81c784;
+                transform: scale(1);
+            }
+            50% {
+                background: #66bb6a;
+                transform: scale(1.05);
+            }
+        }
+
+        .cell.movable::after {
+            content: '●';
+            position: absolute;
+            font-size: 3em;
+            color: #1b5e20;
+            opacity: 0.7;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .piece {
+            font-size: 2.5em;
+            user-select: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .piece img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 0 0 transparent);
+            transition: filter 0.3s;
+        }
+
+        /* プレイヤー1（青いオーラ） */
+        .piece.player1 img {
+            filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.8)) 
+                    drop-shadow(0 0 15px rgba(33, 150, 243, 0.6))
+                    drop-shadow(0 0 25px rgba(33, 150, 243, 0.4));
+        }
+
+        /* プレイヤー2（赤いオーラ） */
+        .piece.player2 img {
+            filter: drop-shadow(0 0 8px rgba(244, 67, 54, 0.8)) 
+                    drop-shadow(0 0 15px rgba(244, 67, 54, 0.6))
+                    drop-shadow(0 0 25px rgba(244, 67, 54, 0.4));
+        }
+
+        /* 自ターンの駒：バウンス（弾む）アニメーション */
+        .piece.player1.current-turn img {
+            animation: bounce-blue 1s ease-in-out infinite;
+        }
+
+        .piece.player2.current-turn img {
+            animation: bounce-red 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce-blue {
+            0%, 100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.8)) 
+                        drop-shadow(0 0 15px rgba(33, 150, 243, 0.6))
+                        drop-shadow(0 0 25px rgba(33, 150, 243, 0.4));
+            }
+            50% {
+                transform: translateY(-10px);
+                filter: drop-shadow(0 0 15px rgba(33, 150, 243, 1)) 
+                        drop-shadow(0 0 25px rgba(33, 150, 243, 0.9))
+                        drop-shadow(0 0 35px rgba(33, 150, 243, 0.7));
+            }
+        }
+
+        @keyframes bounce-red {
+            0%, 100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 8px rgba(244, 67, 54, 0.8)) 
+                        drop-shadow(0 0 15px rgba(244, 67, 54, 0.6))
+                        drop-shadow(0 0 25px rgba(244, 67, 54, 0.4));
+            }
+            50% {
+                transform: translateY(-10px);
+                filter: drop-shadow(0 0 15px rgba(244, 67, 54, 1)) 
+                        drop-shadow(0 0 25px rgba(244, 67, 54, 0.9))
+                        drop-shadow(0 0 35px rgba(244, 67, 54, 0.7));
+            }
+        }
+
+        .piece.player2 {
+            transform: rotate(180deg);
+        }
+
+        .piece:active {
+            transform: scale(1.2);
+        }
+
+        .piece.player2:active {
+            transform: rotate(180deg) scale(1.2);
+        }
+
+        .piece.selected-piece {
+            animation: wiggle 0.5s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% {
+                transform: rotate(-5deg) scale(1.1);
+            }
+            50% {
+                transform: rotate(5deg) scale(1.1);
+            }
+        }
+
+        .piece.player2.selected-piece {
+            animation: wiggle-reverse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes wiggle-reverse {
+            0%, 100% {
+                transform: rotate(175deg) scale(1.1);
+            }
+            50% {
+                transform: rotate(185deg) scale(1.1);
+            }
+        }
+
+        .captured-pieces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 60px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .captured-title {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        /* 上部の「とったくるま」を180度回転 */
+        .captured-title.rotated {
+            transform: rotate(180deg);
+        }
+
+        .captured-piece {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            margin: 5px;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .captured-piece:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .captured-piece.captured-selected {
+            border-color: #ffeb3b;
+            background: rgba(255, 235, 59, 0.3);
+            box-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        .captured-piece img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 持ち駒：自ターンのバウンスアニメーション */
+        .captured-piece.player1-turn img {
+            animation: bounce-captured-blue 1s ease-in-out infinite;
+        }
+
+        .captured-piece.player2-turn img {
+            animation: bounce-captured-red 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce-captured-blue {
+            0%, 100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 5px rgba(33, 150, 243, 0.6)) 
+                        drop-shadow(0 0 10px rgba(33, 150, 243, 0.4));
+            }
+            50% {
+                transform: translateY(-8px);
+                filter: drop-shadow(0 0 12px rgba(33, 150, 243, 1)) 
+                        drop-shadow(0 0 20px rgba(33, 150, 243, 0.8));
+            }
+        }
+
+        @keyframes bounce-captured-red {
+            0%, 100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 5px rgba(244, 67, 54, 0.6)) 
+                        drop-shadow(0 0 10px rgba(244, 67, 54, 0.4));
+            }
+            50% {
+                transform: translateY(-8px);
+                filter: drop-shadow(0 0 12px rgba(244, 67, 54, 1)) 
+                        drop-shadow(0 0 20px rgba(244, 67, 54, 0.8));
+            }
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            animation: bounceIn 0.5s;
+        }
+
+        /* 青チーム勝利時のスタイル */
+        .game-over-content.blue-team {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+
+        .game-over-content.blue-team h2,
+        .game-over-content.blue-team .reset-btn {
+            color: white;
+        }
+
+        .game-over-content.blue-team .reset-btn {
+            background: white;
+            color: #2196f3;
+        }
+
+        /* 赤チーム勝利時のスタイル */
+        .game-over-content.red-team {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .game-over-content.red-team h2,
+        .game-over-content.red-team .reset-btn {
+            color: white;
+        }
+
+        .game-over-content.red-team .reset-btn {
+            background: white;
+            color: #f44336;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .game-over-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .winner-emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        /* スタート画面 */
+        .start-screen {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .start-screen.hidden {
+            display: none;
+        }
+
+        .start-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-content h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .rules {
+            text-align: left;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            font-size: 1em;
+            line-height: 1.8;
+        }
+
+        .rules h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .rules ul {
+            margin-left: 20px;
+        }
+
+        .rules li {
+            margin: 8px 0;
+        }
+
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ゲーム画面（初期は非表示） */
+        .game-container {
+            display: none;
+        }
+
+        .game-container.visible {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+                max-width: 100%;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .piece {
+                font-size: 2em;
+            }
+
+            .board {
+                max-width: 98vw;
+                width: 98vw;
+                padding: 6px;
+                gap: 2px;
+            }
+            
+            .cell {
+                border-width: 1px;
+            }
+            
+            .reset-btn {
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+            
+            .captured-pieces {
+                padding: 10px;
+            }
+            
+            .captured-piece {
+                width: 40px;
+                height: 40px;
+                margin: 3px;
+            }
+        }
+
+        /* iPad専用の調整 */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .board {
+                max-width: 85vw;
+                width: 85vw;
+            }
+            
+            .container {
+                max-width: 90vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- スタート画面 -->
+    <div class="start-screen" id="startScreen">
+        <div class="start-content">
+            <h1>🚗 くるま将棋 🚒</h1>
+            
+            <div class="rules">
+                <h3>📖 遊び方</h3>
+                <ul>
+                    <li><strong>🚒 消防車（王将）</strong>: まわり全部に1マス動けるよ - これを取られたら負け！</li>
+                    <li><strong>🚓 パトカー（角）</strong>: ななめに、どこまでも動けるよ</li>
+                    <li><strong>🚑 救急車（飛車）</strong>: たてとよこに、どこまでも動けるよ</li>
+                    <li><strong>🚜 ブルドーザー（金）</strong>: 前と横とななめ前に動けるよ</li>
+                    <li><strong>🚌 スクールバス（銀）</strong>: 前とななめに動けるよ</li>
+                    <li><strong>🎯 勝利条件</strong>: 相手の消防車を取ったら勝ち！</li>
+                    <li><strong>🔊 音のON/OFF</strong>: ゲーム画面右上のボタンで切り替えできるよ</li>
+                </ul>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">ゲームスタート！</button>
+        </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div class="game-container" id="gameContainer">
+        <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+        
+        <div class="container">
+            <!-- リセットボタン -->
+            <button class="reset-btn" onclick="resetGame()">リセット</button>
+            
+            <!-- 上側：プレイヤー2が取った駒（プレイヤー1の駒）180度回転 -->
+            <div style="margin-bottom: 20px;">
+                <div class="captured-title rotated">とったくるま</div>
+                <div class="captured-pieces" id="capturedPlayer2"></div>
+            </div>
+
+            <div class="board" id="board"></div>
+
+            <!-- 下側：プレイヤー1が取った駒（プレイヤー2の駒） -->
+            <div style="margin-top: 20px;">
+                <div class="captured-title">とったくるま</div>
+                <div class="captured-pieces" id="capturedPlayer1"></div>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <div class="game-over-content">
+                <h2 id="winnerText"></h2>
+                <div class="winner-emoji">🎉</div>
+                <button class="reset-btn" onclick="resetGame()">もう一度遊ぶ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態
+        const BOARD_SIZE = 5;
+        let currentPlayer = 1;
+        let selectedPiece = null;
+        let selectedCapturedPiece = null; // 持ち駒選択状態
+        let board = [];
+        let capturedPieces = { 1: [], 2: [] };
+        let soundEnabled = true;
+
+        // Web Audio API初期化
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 効果音生成関数
+        const SoundEffects = {
+            // 駒を選択した音（クラクション風）
+            select: () => {
+                if (!soundEnabled) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            },
+
+            // 駒を移動した音（エンジン音風）
+            move: () => {
+                if (!soundEnabled) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sawtooth';
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.15);
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+            },
+
+            // 駒を取った音（衝突音）
+            capture: () => {
+                if (!soundEnabled) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+                
+                oscillator.type = 'square';
+                oscillator.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, audioContext.currentTime);
+                
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            },
+
+            // 勝利音（ファンファーレ風）
+            win: () => {
+                if (!soundEnabled) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C (1オクターブ上)
+                notes.forEach((freq, i) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    const startTime = audioContext.currentTime + i * 0.15;
+                    oscillator.frequency.setValueAtTime(freq, startTime);
+                    
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.4);
+                });
+            },
+
+            // リセット音（起動音風）
+            reset: () => {
+                if (!soundEnabled) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+        };
+
+        // サウンド切り替え
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggle');
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            
+            // 切り替え時に短い音を再生
+            if (soundEnabled) {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 440;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            }
+        }
+
+        // 駒の定義（統一されたデザイン - 車体サイズ統一版）
+        const PIECES = {
+            FIRE_TRUCK: { name: '消防車', emoji: '🚒', image: '/public/fire-truck-large-trans.png' },      // 王将
+            POLICE_CAR: { name: 'パトカー', emoji: '🚓', image: '/public/police-car-new-trans.png' },    // 角
+            AMBULANCE: { name: '救急車', emoji: '🚑', image: '/public/ambulance-unified-trans.png' },       // 飛車
+            BULLDOZER: { name: 'ブルドーザー', emoji: '🚜', image: '/public/bulldozer-unified-trans.png' }, // 金
+            SCHOOL_BUS: { name: 'スクールバス', emoji: '🚌', image: '/public/school-bus-unified-trans.png' } // 銀
+        };
+
+        // 初期配置
+        function initBoard() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+            
+            // プレイヤー1（最下段に5駒横並び）
+            board[4][0] = { type: 'BULLDOZER', player: 1 };    // 金
+            board[4][1] = { type: 'POLICE_CAR', player: 1 };   // 角
+            board[4][2] = { type: 'FIRE_TRUCK', player: 1 };   // 王将
+            board[4][3] = { type: 'AMBULANCE', player: 1 };    // 飛車
+            board[4][4] = { type: 'SCHOOL_BUS', player: 1 };   // 銀
+
+            // プレイヤー2（最上段に5駒横並び）
+            board[0][0] = { type: 'SCHOOL_BUS', player: 2 };   // 銀
+            board[0][1] = { type: 'AMBULANCE', player: 2 };    // 飛車
+            board[0][2] = { type: 'FIRE_TRUCK', player: 2 };   // 王将
+            board[0][3] = { type: 'POLICE_CAR', player: 2 };   // 角
+            board[0][4] = { type: 'BULLDOZER', player: 2 };    // 金
+
+            capturedPieces = { 1: [], 2: [] };
+            currentPlayer = 1;
+            selectedPiece = null;
+        }
+
+        // 駒の動きを取得
+        function getValidMoves(row, col) {
+            const piece = board[row][col];
+            if (!piece || piece.player !== currentPlayer) return [];
+
+            const moves = [];
+            
+            // 各駒の基本的な動き
+            const directions = {
+                FIRE_TRUCK: [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]], // 王将：全方向1マス
+                POLICE_CAR: [], // 角：斜め無制限（後で処理）
+                AMBULANCE: [], // 飛車：縦横無制限（後で処理）
+                BULLDOZER: [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,0]], // 金：前3方向+横+後ろ
+                SCHOOL_BUS: [[-1,-1],[-1,0],[-1,1],[1,-1],[1,1]] // 銀：前3方向+斜め後ろ
+            };
+
+            // プレイヤー2の場合は方向を反転
+            const adjustDir = (dir) => {
+                if (piece.player === 2) {
+                    return [dir[0] * -1, dir[1] * -1];
+                }
+                return dir;
+            };
+
+            if (piece.type === 'AMBULANCE') {
+                // 飛車（救急車）：縦横に進む
+                [[0,1],[0,-1],[1,0],[-1,0]].forEach(dir => {
+                    let newRow = row + dir[0];
+                    let newCol = col + dir[1];
+                    while (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE) {
+                        if (board[newRow][newCol]) {
+                            if (board[newRow][newCol].player !== piece.player) {
+                                moves.push([newRow, newCol]);
+                            }
+                            break;
+                        }
+                        moves.push([newRow, newCol]);
+                        newRow += dir[0];
+                        newCol += dir[1];
+                    }
+                });
+            } else if (piece.type === 'POLICE_CAR') {
+                // 角（パトカー）：斜めに進む
+                [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(dir => {
+                    let newRow = row + dir[0];
+                    let newCol = col + dir[1];
+                    while (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE) {
+                        if (board[newRow][newCol]) {
+                            if (board[newRow][newCol].player !== piece.player) {
+                                moves.push([newRow, newCol]);
+                            }
+                            break;
+                        }
+                        moves.push([newRow, newCol]);
+                        newRow += dir[0];
+                        newCol += dir[1];
+                    }
+                });
+            } else {
+                // その他の駒（王将、金、銀）
+                const dirs = directions[piece.type] || [];
+                dirs.forEach(dir => {
+                    const adjusted = adjustDir(dir);
+                    const newRow = row + adjusted[0];
+                    const newCol = col + adjusted[1];
+                    if (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE) {
+                        const target = board[newRow][newCol];
+                        if (!target || target.player !== piece.player) {
+                            moves.push([newRow, newCol]);
+                        }
+                    }
+                });
+            }
+
+            return moves;
+        }
+
+        // 盤面を描画
+        function renderBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    const piece = board[row][col];
+                    if (piece) {
+                        const pieceDiv = document.createElement('div');
+                        // 駒の種類クラスを追加
+                        pieceDiv.className = `piece piece-${piece.type} ${piece.player === 1 ? 'player1' : 'player2'}`;
+                        
+                        // 画像がある場合は画像、なければ絵文字
+                        if (PIECES[piece.type].image) {
+                            const img = document.createElement('img');
+                            img.src = PIECES[piece.type].image;
+                            img.alt = PIECES[piece.type].name;
+                            pieceDiv.appendChild(img);
+                        } else {
+                            pieceDiv.textContent = PIECES[piece.type].emoji;
+                        }
+                        
+                        cell.appendChild(pieceDiv);
+                    }
+
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    boardElement.appendChild(cell);
+                }
+            }
+
+            updateTurnIndicator();
+            renderCapturedPieces();
+        }
+
+        // セルクリック処理
+        function handleCellClick(row, col) {
+            const piece = board[row][col];
+
+            // 持ち駒が選択されている場合：配置を試みる
+            if (selectedCapturedPiece) {
+                if (placeCapturedPiece(row, col)) {
+                    return;
+                } else {
+                    // 配置失敗：選択解除
+                    selectedCapturedPiece = null;
+                    clearHighlights();
+                    renderCapturedPieces();
+                    return;
+                }
+            }
+
+            if (selectedPiece) {
+                // 駒が選択されている場合：移動を試みる
+                const validMoves = getValidMoves(selectedPiece.row, selectedPiece.col);
+                const isValidMove = validMoves.some(move => move[0] === row && move[1] === col);
+
+                if (isValidMove) {
+                    movePiece(selectedPiece.row, selectedPiece.col, row, col);
+                    selectedPiece = null;
+                    clearHighlights();
+                } else if (piece && piece.player === currentPlayer) {
+                    // 別の自分の駒を選択
+                    selectPiece(row, col);
+                } else {
+                    // 無効な移動：選択解除
+                    selectedPiece = null;
+                    clearHighlights();
+                }
+            } else if (piece && piece.player === currentPlayer) {
+                // 駒を選択
+                selectPiece(row, col);
+            }
+        }
+
+        // 駒を選択
+        function selectPiece(row, col) {
+            // 持ち駒選択をクリア
+            selectedCapturedPiece = null;
+            
+            selectedPiece = { row, col };
+            clearHighlights();
+            
+            // 選択音を再生
+            SoundEffects.select();
+            
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add('selected');
+            
+            // 選択された駒にアニメーション追加
+            const pieceDiv = cell.querySelector('.piece');
+            if (pieceDiv) {
+                pieceDiv.classList.add('selected-piece');
+            }
+
+            const validMoves = getValidMoves(row, col);
+            validMoves.forEach(([r, c]) => {
+                const targetCell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+                targetCell.classList.add('movable');
+            });
+
+            // 移動可能マスの数を表示（デバッグ用）
+            console.log(`選択された駒: ${board[row][col].type}, 移動可能マス数: ${validMoves.length}`);
+            
+            // 持ち駒表示を更新
+            renderCapturedPieces();
+        }
+
+        // ハイライトをクリア
+        function clearHighlights() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('selected', 'movable');
+            });
+            document.querySelectorAll('.piece').forEach(piece => {
+                piece.classList.remove('selected-piece');
+            });
+        }
+
+        // 駒を移動
+        function movePiece(fromRow, fromCol, toRow, toCol) {
+            const piece = board[fromRow][fromCol];
+            const capturedPiece = board[toRow][toCol];
+
+            // 駒を取る
+            if (capturedPiece) {
+                capturedPieces[currentPlayer].push(capturedPiece.type);
+                
+                // 駒を取った音を再生
+                SoundEffects.capture();
+                
+                // FIRE_TRUCK（消防車・王将）を取ったらゲーム終了
+                if (capturedPiece.type === 'FIRE_TRUCK') {
+                    board[toRow][toCol] = piece;
+                    board[fromRow][fromCol] = null;
+                    renderBoard();
+                    endGame(currentPlayer);
+                    return;
+                }
+            } else {
+                // 通常の移動音を再生
+                SoundEffects.move();
+            }
+
+            // 駒を移動
+            board[toRow][toCol] = piece;
+            board[fromRow][fromCol] = null;
+
+            // ターン交代
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            renderBoard();
+        }
+
+        // ターン表示を更新（削除済み・互換性のため空関数として残す）
+        function updateTurnIndicator() {
+            // ターン表示は不要になったため何もしない
+        }
+
+        // 取った駒を表示
+        function renderCapturedPieces() {
+            const player1Div = document.getElementById('capturedPlayer1');
+            const player2Div = document.getElementById('capturedPlayer2');
+
+            player1Div.innerHTML = capturedPieces[1].map((type, index) => {
+                const piece = PIECES[type];
+                const selectedClass = (selectedCapturedPiece && selectedCapturedPiece.player === 1 && selectedCapturedPiece.index === index) ? 'captured-selected' : '';
+                if (piece.image) {
+                    return `<span class="captured-piece ${selectedClass}" onclick="selectCapturedPiece(1, ${index})"><img src="${piece.image}" alt="${piece.name}"></span>`;
+                } else {
+                    return `<span class="captured-piece ${selectedClass}" onclick="selectCapturedPiece(1, ${index})">${piece.emoji}</span>`;
+                }
+            }).join('');
+
+            player2Div.innerHTML = capturedPieces[2].map((type, index) => {
+                const piece = PIECES[type];
+                const selectedClass = (selectedCapturedPiece && selectedCapturedPiece.player === 2 && selectedCapturedPiece.index === index) ? 'captured-selected' : '';
+                if (piece.image) {
+                    return `<span class="captured-piece ${selectedClass}" onclick="selectCapturedPiece(2, ${index})"><img src="${piece.image}" alt="${piece.name}"></span>`;
+                } else {
+                    return `<span class="captured-piece ${selectedClass}" onclick="selectCapturedPiece(2, ${index})">${piece.emoji}</span>`;
+                }
+            }).join('');
+        }
+
+        // ゲーム終了
+        function endGame(winner) {
+            // 勝利音を再生
+            SoundEffects.win();
+            
+            const gameOver = document.getElementById('gameOver');
+            const gameOverContent = gameOver.querySelector('.game-over-content');
+            const winnerText = document.getElementById('winnerText');
+            
+            // チーム名と色を設定
+            if (winner === 1) {
+                winnerText.textContent = '青チームの勝ち！';
+                gameOverContent.classList.remove('red-team');
+                gameOverContent.classList.add('blue-team');
+            } else {
+                winnerText.textContent = '赤チームの勝ち！';
+                gameOverContent.classList.remove('blue-team');
+                gameOverContent.classList.add('red-team');
+            }
+            
+            gameOver.classList.add('show');
+        }
+
+        // 持ち駒を選択
+        function selectCapturedPiece(player, index) {
+            // 自分のターンでない場合は選択不可
+            if (player !== currentPlayer) {
+                return;
+            }
+            
+            // 盤面の駒選択をクリア
+            selectedPiece = null;
+            clearHighlights();
+            
+            // 持ち駒を選択
+            selectedCapturedPiece = { player, index };
+            
+            // 選択音を再生
+            SoundEffects.select();
+            
+            // 空きマスをハイライト
+            highlightEmptyCells();
+            
+            // 持ち駒の表示を更新
+            renderCapturedPieces();
+        }
+        
+        // 空きマスをハイライト
+        function highlightEmptyCells() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (!board[row][col]) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('movable');
+                    }
+                }
+            }
+        }
+        
+        // 持ち駒を配置
+        function placeCapturedPiece(row, col) {
+            if (!selectedCapturedPiece) return false;
+            
+            // 空きマスでない場合は配置不可
+            if (board[row][col]) return false;
+            
+            const { player, index } = selectedCapturedPiece;
+            const pieceType = capturedPieces[player][index];
+            
+            // 盤面に配置
+            board[row][col] = { type: pieceType, player: player };
+            
+            // 持ち駒から削除
+            capturedPieces[player].splice(index, 1);
+            
+            // 選択状態をクリア
+            selectedCapturedPiece = null;
+            clearHighlights();
+            
+            // 移動音を再生
+            SoundEffects.move();
+            
+            // ターン交代
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            renderBoard();
+            
+            return true;
+        }
+
+        // ゲームをリセット
+        function resetGame() {
+            // リセット音を再生
+            SoundEffects.reset();
+            
+            const gameOver = document.getElementById('gameOver');
+            gameOver.classList.remove('show');
+            
+            // 持ち駒選択をクリア
+            selectedCapturedPiece = null;
+            
+            initBoard();
+            renderBoard();
+        }
+
+        // ゲーム開始関数（スタート画面からの遷移）
+        function startGame() {
+            // スタート画面を非表示
+            const startScreen = document.getElementById('startScreen');
+            startScreen.classList.add('hidden');
+            
+            // ゲーム画面を表示
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.classList.add('visible');
+            
+            // ゲーム初期化と描画
+            initBoard();
+            renderBoard();
+            
+            // ゲーム開始音を再生
+            SoundEffects.reset();
+        }
+
+        // Service Worker登録（PWA対応）
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/public/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker登録成功:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker登録失敗:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
