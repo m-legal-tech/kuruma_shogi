@@ -6,18 +6,18 @@
     <title>くるま将棋 - 子ども向け将棋ゲーム</title>
     
     <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/public/manifest.json">
+    <link rel="manifest" href="public/manifest.json">
     
     <!-- iOS用アイコン -->
-    <link rel="apple-touch-icon" href="/public/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="public/apple-touch-icon.png">
     
     <!-- その他のアイコン -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/public/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/public/icon-512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="public/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="public/icon-512.png">
     
     <!-- テーマカラー -->
     <meta name="theme-color" content="#667eea">
@@ -836,11 +836,11 @@
 
         // 駒の定義（統一されたデザイン - 車体サイズ統一版）
         const PIECES = {
-            FIRE_TRUCK: { name: '消防車', emoji: '🚒', image: '/public/fire-truck-large-trans.png' },      // 王将
-            POLICE_CAR: { name: 'パトカー', emoji: '🚓', image: '/public/police-car-new-trans.png' },    // 角
-            AMBULANCE: { name: '救急車', emoji: '🚑', image: '/public/ambulance-unified-trans.png' },       // 飛車
-            BULLDOZER: { name: 'ブルドーザー', emoji: '🚜', image: '/public/bulldozer-unified-trans.png' }, // 金
-            SCHOOL_BUS: { name: 'スクールバス', emoji: '🚌', image: '/public/school-bus-unified-trans.png' } // 銀
+            FIRE_TRUCK: { name: '消防車', emoji: '🚒', image: 'public/fire-truck-large-trans.png' },      // 王将
+            POLICE_CAR: { name: 'パトカー', emoji: '🚓', image: 'public/police-car-new-trans.png' },    // 角
+            AMBULANCE: { name: '救急車', emoji: '🚑', image: 'public/ambulance-unified-trans.png' },       // 飛車
+            BULLDOZER: { name: 'ブルドーザー', emoji: '🚜', image: 'public/bulldozer-unified-trans.png' }, // 金
+            SCHOOL_BUS: { name: 'スクールバス', emoji: '🚌', image: 'public/school-bus-unified-trans.png' } // 銀
         };
 
         // 初期配置
@@ -1256,7 +1256,7 @@
         // Service Worker登録（PWA対応）
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/public/sw.js')
+                navigator.serviceWorker.register('public/sw.js')
                     .then((registration) => {
                         console.log('Service Worker登録成功:', registration.scope);
                     })

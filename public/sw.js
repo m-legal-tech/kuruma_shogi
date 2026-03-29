@@ -1,15 +1,18 @@
-const CACHE_NAME = 'kuruma-shogi-v1';
+const CACHE_NAME = 'kuruma-shogi-v2';
 const urlsToCache = [
-  '/kuruma-shogi.html',
-  '/public/manifest.json',
-  '/public/icon-192.png',
-  '/public/icon-512.png',
-  '/public/apple-touch-icon.png',
-  '/public/fire-truck-large-trans.png',
-  '/public/police-car-new-trans.png',
-  '/public/ambulance-unified-trans.png',
-  '/public/bulldozer-unified-trans.png',
-  '/public/school-bus-unified-trans.png'
+  './',
+  './kuruma-shogi.html',
+  './public/manifest.json',
+  './public/icon-192.png',
+  './public/icon-512.png',
+  './public/icon-maskable-192.png',
+  './public/icon-maskable-512.png',
+  './public/apple-touch-icon.png',
+  './public/fire-truck-large-trans.png',
+  './public/police-car-new-trans.png',
+  './public/ambulance-unified-trans.png',
+  './public/bulldozer-unified-trans.png',
+  './public/school-bus-unified-trans.png'
 ];
 
 // インストール時にキャッシュを作成

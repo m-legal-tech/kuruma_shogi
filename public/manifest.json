@@ -2,26 +2,39 @@
   "name": "くるま将棋",
   "short_name": "くるま将棋",
   "description": "子ども向けの車をテーマにした将棋ゲーム",
-  "start_url": "/kuruma-shogi.html",
+  "start_url": "/kuruma_shogi/kuruma-shogi.html",
+  "scope": "/kuruma_shogi/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
   "orientation": "any",
   "icons": [
     {
-      "src": "/public/icon-192.png",
+      "src": "/kuruma_shogi/public/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/public/icon-512.png",
+      "src": "/kuruma_shogi/public/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/public/apple-touch-icon.png",
+      "src": "/kuruma_shogi/public/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/kuruma_shogi/public/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/kuruma_shogi/public/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     }
